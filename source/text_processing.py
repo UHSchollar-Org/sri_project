@@ -70,5 +70,7 @@ def normalize_text(text):
 
 def clean_text(text, steaming, lemmatizing):
     text = normalize_text(text)
-    return stem_text(text) if steaming else lemmatize_text(text) if lemmatizing else text
+    return stem_text(lemmatize_text(text)) if steaming and lemmatizing \
+        else stem_text(text) if steaming else lemmatize_text(text) if lemmatizing else text
+
     
