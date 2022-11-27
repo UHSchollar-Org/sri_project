@@ -18829,3 +18829,9 @@ corpus/20news-18828/talk.religion.misc/84570
 source/__pycache__/document.cpython-310.pyc
 source/__pycache__/text_processing.cpython-310.pyc
 source/__pycache__/twenty_news_corpus.cpython-310.pyc
+corpus/cran_corpus/cran.all.1400
+corpus/cran_corpus/cran.qry
+corpus/indexed_corpus/cranfield_index/all_words_st.bak
+corpus/indexed_corpus/cranfield_index/documents_st.bak
+corpus/cran_corpus/cranqrel
+corpus/cran_corpus/cranqrel.readme

@@ -1,0 +1,37 @@
+import pickle as plk
+import re
+from collections import Counter
+from document import corpus, document
+from text_processing import *
+
+class cran_corpus(corpus):
+    
+        def __init__(self, stemming, lemmatizing) -> None:
+            super().__init__('cranfield', stemming, lemmatizing)
+        
+        def proccess_corpus(self):
+            data_path = self.path/'corpus/cran_corpus/cran.all.1400'
+            
+            with open(data_path, 'r') as f:
+                texts = f.read().split('\n.I')
+                for i,article in enumerate(texts):
+                    doc_id = i+1
+                    article = article.split('\n.T\n')[1]
+                    aux = article.split('\n.A\n')
+                    doc_tittle = aux[0]
+                    article = aux[1]
+                    aux = article.split('\n.B\n')
+                    doc_author = aux[0]
+                    article = aux[1]
+                    aux = article.split('\n.W\n')
+                    doc_bibliography = aux[0]
+                    doc_text = aux [1]
+                    
+                    doc = document(doc_id,doc_tittle,doc_author,doc_text)
+                    
+                    clean_doc = clean_text(doc.text, self.stemming, self.lemmatizing)
+                
+                    for word in set(clean_doc):
+                        self.all_words_counter[word] = self.all_words_counter.get(word, 0) + 1
+                
+                    self.documents_words_counter[doc] = Counter(clean_doc)
