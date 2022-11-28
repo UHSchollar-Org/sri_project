@@ -3,6 +3,8 @@ import re
 import unicodedata
 import inflect as inf
 from nltk.corpus import stopwords
+import sympy as sy
+from typing import List
 
 
 def tokenize_text(text):
@@ -60,7 +62,20 @@ def stem_text(text):
         stems.append(ps.stem(w))
     return stems
 
+def stem_lemm(text, steaming, lemmatizing):
+    return stem_text(lemmatize_text(text)) if steaming and lemmatizing \
+        else stem_text(text) if steaming else lemmatize_text(text) if lemmatizing else text
+
 def normalize_text(text):
+    text = tokenize_text(text)
+    text = remove_non_ascii(text)
+    text = to_lower(text)
+    text = remove_stopwords(text)
+    text = remove_puntuation(text)
+    text = replace_numbers(text)
+    return text
+
+def normalize_keep_stopwords(text):
     text = tokenize_text(text)
     text = remove_non_ascii(text)
     text = to_lower(text)
@@ -68,9 +83,31 @@ def normalize_text(text):
     text = replace_numbers(text)
     return text
 
+def get_valid_boolean_expression(text : List[str]) -> List[str]:
+    pass
+
+def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
+    text = normalize_keep_stopwords(text)
+    logic_operators = {'and': '&', 'or': '|', 'not': '~'}
+    
+    exp = []
+     
+    for i in range(len(text)):
+        if text[i] in logic_operators.keys():
+            exp.append(logic_operators[text[i]])
+        else:
+            exp.append(text[i])
+            if i+1 < len(text) and text[i+1] not in ['and', 'or']:
+                exp.append('&')
+    
+    exp = remove_stopwords(exp)
+    exp = stem_lemm(exp, steaming, lemmatizing)
+    
+    return exp
+    return get_valid_boolean_expression(exp)
+    
 def clean_text(text, steaming, lemmatizing):
     text = normalize_text(text)
-    return stem_text(lemmatize_text(text)) if steaming and lemmatizing \
-        else stem_text(text) if steaming else lemmatize_text(text) if lemmatizing else text
+    return stem_lemm(text, steaming, lemmatizing)
 
     

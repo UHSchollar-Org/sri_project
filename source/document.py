@@ -3,6 +3,8 @@ from typing import *
 from pathlib import Path
 import pickle as pk
 import nltk as nl
+from text_processing import clean_text, get_boolean_text
+from collections import Counter
 
 class document:
     
@@ -20,7 +22,20 @@ class document:
     
     def __str__(self) -> str:
         return str(self.id)
+
+class query:
+    def __init__(self, text) -> None:
+        self.text = text
+        self.boolean_text = get_boolean_text(text, True, False)
+        self.clean_text = clean_text(text, True, False)  ##Cambiar aqui los booleanos por parametros
+        self.counter = Counter(self.clean_text)
+        
+    def __iter__(self):
+        return iter(self.clean_text)
     
+    def __eq__(self, __o: object) -> bool:
+        return set(self.clean_text) == set(__o.clean_text)
+  
 class corpus(ABC):
     
     def __init__(self, name, stemming, lemmatizing) -> None:

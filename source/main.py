@@ -1,15 +1,19 @@
-import text_processing
 import txt_corpus as txt
 from models import vector_model
-
-
+from document import query
+from nltk.corpus import stopwords
+import text_processing as tp
+from sympy import sympify, to_dnf
 corp = txt.txt_corpus(True, False)
 
 mri_vec = vector_model(corp)
 
-idfs = mri_vec.idfs
-weights = mri_vec.weights_in_docs
+q1 : query = query("harry potter and the school")
 
-print(idfs)
-print("*************************************************************************************")
-print(weights)
+r = mri_vec.exec_query(q1)
+
+a = tp.get_boolean_text("harry or potter or magic not school", True, True)
+a = " ".join(a)
+b = sympify(a)
+c = to_dnf(b)
+print(c)
