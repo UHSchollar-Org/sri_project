@@ -144,21 +144,37 @@ class boolean_model(generic_mri_model):
             self.save_model_data()
     
     def load_model_data(self):
-        
         pass
     
     def save_model_data(self):
         pass
     
-    def calc_weights(self) -> Dict[document, Dict[str, int]]:
-        pass
-    
-    
-    
-    def query_dnf(self, q : query):
-        pass
-    
+    def match_query_doc(self, doc : document, q_dnf) -> bool:
+        
+        for cc in q_dnf.args:
+            for i,item in enumerate(cc.args):
+                word = str(item)
+                if word[0] == '~':
+                    word = word[1:]
+                    if word in self._corpus.documents_words_counter[doc]:
+                        break
+                else:
+                    if word not in self._corpus.documents_words_counter[doc]:
+                        break
+                if i == len(cc.args)-1:
+                    return True
+        return False
+                
+            
     def exec_query(self, q : query) -> List[Tuple[document, float]]:
         recovery_docs : List[Tuple[document, float]]= []
+        q_dnf = to_dnf(" ".join(q.boolean_text)) 
+        
+        for doc in self._corpus.documents_words_counter.keys():
+            if self.match_query_doc(doc, q_dnf):
+                recovery_docs.append((doc, 1))
+        
+        return recovery_docs
+        
         
         

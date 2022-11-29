@@ -21,12 +21,14 @@ def to_lower(text : list):
     return [w.lower() for w in text]
     
 
-def remove_puntuation(text : list):
+def remove_puntuation(text : list, keep_parenthesis : bool = False):
     new_text = []
     for w in text:
         new_word = re.sub(r'[^\w\s]', '', w)
         if new_word != '':
             new_text.append(new_word)
+        elif keep_parenthesis and (w == '(' or w == ')'):
+            new_text.append(w)
     return new_text
 
 def replace_numbers(text : list):
@@ -40,11 +42,13 @@ def replace_numbers(text : list):
             new_text.append(w)
     return new_text
 
-def remove_stopwords(text):
+def remove_stopwords(text, keep_logic_exp : bool = False):
     """Remove stop words from list of tokenized words"""
     new_text = []
     for w in text:
-        if w not in stopwords.words('english'):
+        if keep_logic_exp and w in ['and', 'or', 'not']:
+            new_text.append(w)
+        elif w not in stopwords.words('english'):
             new_text.append(w)
     return new_text
 
@@ -66,48 +70,60 @@ def stem_lemm(text, steaming, lemmatizing):
     return stem_text(lemmatize_text(text)) if steaming and lemmatizing \
         else stem_text(text) if steaming else lemmatize_text(text) if lemmatizing else text
 
-def normalize_text(text):
+def normalize_text(text, is_boolean_text : bool = False):
     text = tokenize_text(text)
     text = remove_non_ascii(text)
     text = to_lower(text)
-    text = remove_stopwords(text)
-    text = remove_puntuation(text)
+    text = remove_stopwords(text, is_boolean_text)
+    text = remove_puntuation(text, is_boolean_text)
     text = replace_numbers(text)
     return text
 
-def normalize_keep_stopwords(text):
+"""def normalize_keep_logic_exp(text):
     text = tokenize_text(text)
     text = remove_non_ascii(text)
     text = to_lower(text)
-    text = remove_puntuation(text)
+    text = remove_stopwords(text, True)
+    text = remove_puntuation(text, True)
     text = replace_numbers(text)
-    return text
+    return text"""
 
-def get_valid_boolean_expression(text : List[str]) -> List[str]:
-    pass
+def is_balanced(text):
+    return True
 
 def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
-    text = normalize_keep_stopwords(text)
-    logic_operators = {'and': '&', 'or': '|', 'not': '~'}
-    
+    text = clean_text(text, steaming, lemmatizing, True)
     exp = []
-     
-    for i in range(len(text)):
-        if text[i] in logic_operators.keys():
-            exp.append(logic_operators[text[i]])
-        else:
-            exp.append(text[i])
-            if i+1 < len(text) and text[i+1] not in ['and', 'or']:
-                exp.append('&')
+    if is_balanced(text):
+        i = 0
+        while i < len(text):
+            match text[i]:
+                case 'and':
+                    if i+1 < len(text) and text[i+1] not in ['and', 'or', ')']:
+                        exp.append('&')
+                case 'or':
+                    if i+1 < len(text) and text[i+1] not in ['and', 'or', ')']:
+                        exp.append('|')
+                case 'not':
+                    if i+1 < len(text) and text[i+1] not in ['and', 'or', 'not', '(', ')']:
+                        exp.append('~'+ text[i+1])
+                        i+=1
+                case '(':
+                    exp.append('(')
+                case ')':
+                    exp.append(')')
+                case _:
+                    exp.append(text[i])
+                    if i+1 < len(text) and text[i+1] not in ['and', 'or', 'not', '(', ')']:
+                        exp.append('&')
+            i+=1
     
-    exp = remove_stopwords(exp)
-    exp = stem_lemm(exp, steaming, lemmatizing)
+        return exp
+    else:
+        raise SyntaxError()
     
-    return exp
-    return get_valid_boolean_expression(exp)
-    
-def clean_text(text, steaming, lemmatizing):
-    text = normalize_text(text)
+def clean_text(text, steaming, lemmatizing, is_boolean_text : bool = False):
+    text = normalize_text(text, is_boolean_text)
     return stem_lemm(text, steaming, lemmatizing)
 
     
