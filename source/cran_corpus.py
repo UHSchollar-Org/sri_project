@@ -6,6 +6,9 @@ from text_processing import *
 
 class cran_corpus(corpus):
     
+        PATTERN = r'\n\.T(.*)\n\.A(.*)\n\.B(.*)\n\.W(.*)'
+        pattern = re.compile(PATTERN,re.DOTALL) 
+
         def __init__(self, stemming, lemmatizing) -> None:
             super().__init__('cranfield', stemming, lemmatizing)
         
@@ -16,16 +19,11 @@ class cran_corpus(corpus):
                 texts = f.read().split('\n.I')
                 for i,article in enumerate(texts):
                     doc_id = i+1
-                    article = article.split('\n.T\n')[1]
-                    aux = article.split('\n.A\n')
-                    doc_tittle = aux[0]
-                    article = aux[1]
-                    aux = article.split('\n.B\n')
-                    doc_author = aux[0]
-                    article = aux[1]
-                    aux = article.split('\n.W\n')
-                    doc_bibliography = aux[0]
-                    doc_text = aux [1]
+                    aux = self.pattern.search(article)
+                    doc_tittle = aux.group(1)
+                    doc_author = aux.group(2)
+                    doc_bibliography = aux.group(3)
+                    doc_text = aux.group(4)
                     
                     doc = document(doc_id,doc_tittle,doc_author,doc_text)
                     
