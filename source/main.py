@@ -1,19 +1,46 @@
 import txt_corpus as txt
-from models import vector_model
+import cran_corpus as cran
+import twenty_news_corpus as news
+from models import vector_model, boolean_model
 from document import query
 from nltk.corpus import stopwords
 import text_processing as tp
 from sympy import sympify, to_dnf
-corp = txt.txt_corpus(True, False)
+import configparser
 
-mri_vec = vector_model(corp)
+# region Reading all settings
+config = configparser.ConfigParser()
+config.read('source/config.ini')
 
-q1 : query = query("harry potter and the school")
+steamming = config.getboolean('DEFAULT','STEAMMING')
+lemmatizing = config.getboolean('DEFAULT','LEMMATIZING')
+corp = config['DEFAULT']['CORPUS']
+if corp not in ['txt', '20news','cranfield']:
+    raise Exception('Corpus not allowed. Only TXT, 20News and Cranfield corpora are allowed')
 
-r = mri_vec.exec_query(q1)
+match corp:
+    case 'txt':
+        corp = txt.txt_corpus(steamming, lemmatizing)
+    case 'cranfield':
+        corp = cran.cran_corpus(steamming,lemmatizing)
+    case '20news':
+        corp = news.twenty_news_corpus(steamming,lemmatizing)
 
-a = tp.get_boolean_text("harry or potter or magic not school", True, True)
-a = " ".join(a)
-b = sympify(a)
-c = to_dnf(b)
-print(c)
+model = config['DEFAULT']['MODEL']
+if model not in ['boolean', 'vector']:
+    raise Exception('Model not allowed. Only Boolean and Vector models are allowed')
+
+match model:
+    case 'boolean':
+        model = boolean_model(corp)
+    case 'vector':
+        model = vector_model(corp)
+#endregion
+
+
+q1 : query = query("what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
+
+r = model.exec_query(q1)
+
+for tuple in r:
+    print(tuple[0])

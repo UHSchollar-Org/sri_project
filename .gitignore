@@ -18835,3 +18835,12 @@ corpus/indexed_corpus/cranfield_index/all_words_st.bak
 corpus/indexed_corpus/cranfield_index/documents_st.bak
 corpus/cran_corpus/cranqrel
 corpus/cran_corpus/cranqrel.readme
+corpus/indexed_corpus/txt_index/all_words_st.bak
+corpus/indexed_corpus/txt_index/all_words_st.bak
+corpus/indexed_corpus/txt_index/all_words_st.bak
+corpus/indexed_corpus/txt_index/documents_st.bak
+models_info/vector_model/idfs.bak
+models_info/vector_model/weights.bak
+source/__pycache__/cran_corpus.cpython-310.pyc
+source/__pycache__/models.cpython-310.pyc
+source/__pycache__/txt_corpus.cpython-310.pyc
