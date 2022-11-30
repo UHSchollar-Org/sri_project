@@ -177,10 +177,7 @@ class boolean_model(generic_mri_model):
     def exec_query(self, q : query) -> List[Tuple[document, float]]:
         recovery_docs : List[Tuple[document, float]]= []
         q_dnf = to_dnf(" ".join(q.boolean_text))
-        
-        #q_dnf = q_dnf.split('|')
-        
-        
+    
         for doc in self._corpus.documents_words_counter.keys():
             if q_dnf.is_Atom:
                 if self.match_atom_doc(doc, q_dnf):

@@ -88,7 +88,19 @@ def normalize_text(text, is_boolean_text : bool = False):
     text = replace_numbers(text)
     return text"""
 
-def is_balanced(text):
+def is_balanced(text) -> bool:
+    o_parenthesis = 0
+    c_parenthesis = 0
+    for i in range(len(text)):
+        if text[i] == '(':
+            o_parenthesis += 1
+        elif text[i] == ')':
+            c_parenthesis += 1
+        
+        if o_parenthesis < c_parenthesis:
+            return False
+    if o_parenthesis != c_parenthesis:
+        return False
     return True
 
 def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
