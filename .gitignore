@@ -18850,3 +18850,5 @@ models_info/vector_model/weights.bak
 source/__pycache__/cran_corpus.cpython-310.pyc
 source/__pycache__/models.cpython-310.pyc
 source/__pycache__/txt_corpus.cpython-310.pyc
+models_info/vector_model/cranfield/idfs.bak
+models_info/vector_model/cranfield/weights.bak

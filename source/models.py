@@ -20,7 +20,7 @@ class generic_mri_model(ABC):
 class vector_model(generic_mri_model):
     def __init__(self, corpus) -> None:
         super().__init__(corpus)
-        self.path = Path.cwd() / 'models_info/vector_model/'
+        self.path = Path.cwd() / f'models_info/vector_model/{corpus.name}'
 
         try:
             self.load_model_data()
@@ -149,29 +149,46 @@ class boolean_model(generic_mri_model):
     def save_model_data(self):
         pass
     
+    def match_atom_doc(self, doc: document, atom):
+        word = str(atom)
+        if word[0] == '~':
+            word = word[1:]
+            if word in self._corpus.documents_words_counter[doc].keys():
+                return False
+        else:
+            if word not in self._corpus.documents_words_counter[doc].keys():
+                return False
+        return True
+        
+    
+    def match_cc_doc(self, doc : document, cc):
+        for item in cc.args:
+            if not self.match_atom_doc(doc, item):
+                return False
+        return True
+        
     def match_query_doc(self, doc : document, q_dnf) -> bool:
         
         for cc in q_dnf.args:
-            for i,item in enumerate(cc.args):
-                word = str(item)
-                if word[0] == '~':
-                    word = word[1:]
-                    if word in self._corpus.documents_words_counter[doc]:
-                        break
-                else:
-                    if word not in self._corpus.documents_words_counter[doc]:
-                        break
-                if i == len(cc.args)-1:
-                    return True
+            if self.match_cc_doc(doc, cc):
+                return True
         return False
                 
-            
     def exec_query(self, q : query) -> List[Tuple[document, float]]:
         recovery_docs : List[Tuple[document, float]]= []
-        q_dnf = to_dnf(" ".join(q.boolean_text)) 
+        q_dnf = to_dnf(" ".join(q.boolean_text))
+        
+        #q_dnf = q_dnf.split('|')
+        
         
         for doc in self._corpus.documents_words_counter.keys():
-            if self.match_query_doc(doc, q_dnf):
+            if q_dnf.is_Atom:
+                if self.match_atom_doc(doc, q_dnf):
+                    recovery_docs.append((doc,1))
+            elif q_dnf.identity:
+                if  self.match_cc_doc(doc, q_dnf):
+                    recovery_docs.append((doc, 1))
+            elif self.match_query_doc(doc, q_dnf):
                 recovery_docs.append((doc, 1))
         
         return recovery_docs

@@ -40,8 +40,10 @@ match model:
 
 
 q1 : query = query("what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
+q2 : query = query("(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
+q3 : query = query("experimental")
 
-r = corp.exec_query(q1)
-
+r = model.exec_query(q2)
+    
 for tuple in r:
     print(tuple[0])
