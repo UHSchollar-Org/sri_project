@@ -117,7 +117,7 @@ def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
                     if i+1 < len(text) and text[i+1] not in ['and', 'or', ')']:
                         exp.append('|')
                 case 'not':
-                    if i+1 < len(text) and text[i+1] not in ['and', 'or', 'not', '(', ')']:
+                    if i+1 < len(text) and text[i+1] not in ['and', 'or', ')']:
                         exp.append('~'+ text[i+1])
                         i+=1
                 case '(':
