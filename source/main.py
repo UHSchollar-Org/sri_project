@@ -1,11 +1,8 @@
 import txt_corpus as txt
 import cran_corpus as cran
 import twenty_news_corpus as news
-from models import vector_model, boolean_model
+from models import vector_model, boolean_model, generalized_vector_model
 from document import query
-from nltk.corpus import stopwords
-import text_processing as tp
-from sympy import sympify, to_dnf
 import configparser
 
 # region Reading all settings
@@ -27,7 +24,7 @@ match corp:
         corp = news.twenty_news_corpus(steamming,lemmatizing)
 
 model = config['DEFAULT']['MODEL']
-if model not in ['boolean', 'vector']:
+if model not in ['boolean', 'vector', 'generalized_vector']:
     raise Exception('Model not allowed. Only Boolean and Vector models are allowed')
 
 match model:
@@ -35,6 +32,8 @@ match model:
         model = boolean_model(corp)
     case 'vector':
         model = vector_model(corp)
+    case 'generalized_vector':
+        model = generalized_vector_model(corp)
 #endregion
 
 
@@ -43,7 +42,7 @@ q1 : query = query("what similarity laws must be obeyed when constructing aeroel
 q2 : query = query("(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
 q3 : query = query("experimental")
 
-r = model.exec_query(q2)
+r = model.exec_query(q1)
     
 for tuple in r:
     print(tuple[0])

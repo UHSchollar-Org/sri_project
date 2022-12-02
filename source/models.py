@@ -11,6 +11,7 @@ from sympy import sympify, to_dnf
 class generic_mri_model(ABC):
     def __init__(self, _corpus) -> None:
         self._corpus : corpus = _corpus
+        self.path = Path.cwd() / f'models_info/{type(self).__name__}/{_corpus.name}'
         
     @abstractmethod
     def exec_query(self, query) -> List[Tuple[document, float]]:
@@ -20,7 +21,6 @@ class generic_mri_model(ABC):
 class vector_model(generic_mri_model):
     def __init__(self, corpus) -> None:
         super().__init__(corpus)
-        self.path = Path.cwd() / f'models_info/vector_model/{corpus.name}'
 
         try:
             self.load_model_data()
@@ -135,7 +135,6 @@ class vector_model(generic_mri_model):
 class boolean_model(generic_mri_model):
     def __init__(self, _corpus) -> None:
         super().__init__(_corpus)
-        self.path = Path.cwd() / 'models_info/boolean_model/'
         
         try:
             self.load_model_data()
@@ -189,6 +188,9 @@ class boolean_model(generic_mri_model):
                 recovery_docs.append((doc, 1))
         
         return recovery_docs
+          
+class generalized_vector_model(vector_model):
+    def __init__(self, corpus) -> None:
+        super().__init__(corpus)
         
-        
-        
+    
