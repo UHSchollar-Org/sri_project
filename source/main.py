@@ -1,7 +1,7 @@
 import txt_corpus as txt
 import cran_corpus as cran
 import twenty_news_corpus as news
-from models import vector_model, boolean_model, generalized_vector_model
+from models import vector_model, boolean_model, fuzzy_model
 from document import query
 import configparser
 
@@ -24,7 +24,7 @@ match corp:
         corp = news.twenty_news_corpus(steamming,lemmatizing)
 
 model = config['DEFAULT']['MODEL']
-if model not in ['boolean', 'vector', 'generalized_vector']:
+if model not in ['boolean', 'vector', 'fuzzy']:
     raise Exception('Model not allowed. Only Boolean and Vector models are allowed')
 
 match model:
@@ -32,8 +32,8 @@ match model:
         model = boolean_model(corp)
     case 'vector':
         model = vector_model(corp)
-    case 'generalized_vector':
-        model = generalized_vector_model(corp)
+    case 'fuzzy':
+        model = fuzzy_model(corp)
 #endregion
 
 
@@ -41,8 +41,9 @@ match model:
 q1 : query = query("what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
 q2 : query = query("(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
 q3 : query = query("experimental")
+q4 : query = query("models and (speed or not heated)")
 
-r = model.exec_query(q1)
+r = model.exec_query(q4)
     
 for tuple in r:
     print(tuple[0])
