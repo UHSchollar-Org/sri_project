@@ -195,7 +195,8 @@ class fuzzy_model(generic_mri_model):
         try:
             self.load_model_data()
         except FileNotFoundError:
-            pass
+
+            self.docs_contain_word_dict : Dict[str, List[document]] = self.calc_docs_contain_all_words()
             self.correlation_dict : Dict[str, Dict[str,float]]= self.calc_correlation_dict()
             self.belongs_docs : Dict[document, Dict[str, float]] = self.calc_belongs_docs()
             self.save_model_data()
@@ -214,9 +215,16 @@ class fuzzy_model(generic_mri_model):
         return [doc for doc in self._corpus.documents_words_counter.keys() 
                 if word in self._corpus.documents_words_counter[doc]]
     
+    def calc_docs_contain_all_words(self) -> Dict[str, List[document]]:
+        docs_contain_all_words : Dict[str, List[document]] = {}
+        
+        for word in self._corpus.all_words_counter.keys():
+            docs_contain_all_words[word] = self.docs_contain_word(word)
+        return docs_contain_all_words
+            
     def calc_correlation(self, word_i : str, word_j : str) -> float:
-        docs_i = self.docs_contain_word(word_i)
-        docs_j = self.docs_contain_word(word_j)
+        docs_i = self.docs_contain_word_dict[word_i]
+        docs_j = self.docs_contain_word_dict[word_j]
         
         n_i = len(docs_i)
         n_j = len(docs_j)
@@ -238,7 +246,9 @@ class fuzzy_model(generic_mri_model):
     def calc_belongs_doc_word(self, doc, word_i) -> float:
         mult_corr = 1
         for word_l in self._corpus.documents_words_counter[doc].keys():
-            mult_corr  *= (1 - self.correlation_dict[word_i][word_l])
+            if word_i != word_l:
+                mult_corr  *= (1 - self.correlation_dict[word_i][word_l])
+            
         
         return 1 - mult_corr    
     
@@ -272,7 +282,7 @@ class fuzzy_model(generic_mri_model):
     def calc_belong_doc_cc(self, doc, cc):
         belong_doc_cc = 1
         for atom in cc.args:
-            if atom.is_negative:
+            if str(atom)[0] == '~':
                 atom = str(atom)[1:]
                 belong_doc_cc *= (1 - self.belongs_docs[doc][atom])
             else:
