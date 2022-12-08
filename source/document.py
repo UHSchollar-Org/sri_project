@@ -24,7 +24,8 @@ class document:
         return str(self.id)
 
 class query:
-    def __init__(self, text) -> None:
+    def __init__(self, id, text) -> None:
+        self.id = id
         self.text = text
         self.boolean_text = get_boolean_text(text, True, False)
         self.clean_text = clean_text(text, True, False)  ##Cambiar aqui los booleanos por parametros
@@ -43,6 +44,7 @@ class corpus(ABC):
         self.name = name
         self.stemming = stemming
         self.lemmatizing = lemmatizing
+        self.docs_count = 0
         
         try:
             self.load_indexed_corpus()

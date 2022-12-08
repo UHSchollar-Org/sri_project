@@ -10,8 +10,9 @@ class cran_corpus(corpus):
         pattern = re.compile(PATTERN,re.DOTALL) 
 
         def __init__(self, stemming, lemmatizing) -> None:
-            super().__init__('cranfield', stemming, lemmatizing)
-        
+            super().__init__('cranfield', stemming, lemmatizing,)
+            self.docs_count = 1400
+                    
         def proccess_corpus(self):
             data_path = self.path/'corpus/cran_corpus/cran.all.1400'
             

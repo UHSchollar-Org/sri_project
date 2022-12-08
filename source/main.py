@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 import text_processing as tp
 from sympy import sympify, to_dnf
 import configparser
+from eval import evaluate
 
 # region Reading all settings
 config = configparser.ConfigParser()
@@ -39,11 +40,20 @@ match model:
 
 
 
-q1 : query = query("what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
-q2 : query = query("(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
-q3 : query = query("experimental")
+q1 : query = query(0,"what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
+q2 : query = query(1,"(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
+q3 : query = query(2,"experimental")
 
-r = model.exec_query(q2)
+w, x, y, z = evaluate(corp, model)
+"""r = model.exec_query(q1)
     
 for tuple in r:
-    print(tuple[0])
+    print(tuple[0])"""
+print(w)
+print('***************')
+print(x)
+print('***************')
+print(y)
+print('***************')
+print(z)
+print('***************')
