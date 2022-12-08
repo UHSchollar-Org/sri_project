@@ -6,11 +6,12 @@ import pickle as pk
 from math import log10
 from collections import Counter
 import math
-from sympy import sympify, to_dnf
+from sympy import to_dnf, sympify
 
 class generic_mri_model(ABC):
     def __init__(self, _corpus) -> None:
         self._corpus : corpus = _corpus
+        self.path = Path.cwd() / f'models_info/{type(self).__name__}/{_corpus.name}'
         
     @abstractmethod
     def exec_query(self, query) -> List[Tuple[document, float]]:
@@ -20,7 +21,6 @@ class generic_mri_model(ABC):
 class vector_model(generic_mri_model):
     def __init__(self, corpus) -> None:
         super().__init__(corpus)
-        self.path = Path.cwd() / f'models_info/vector_model/{corpus.name}'
 
         try:
             self.load_model_data()
@@ -135,7 +135,6 @@ class vector_model(generic_mri_model):
 class boolean_model(generic_mri_model):
     def __init__(self, _corpus) -> None:
         super().__init__(_corpus)
-        self.path = Path.cwd() / 'models_info/boolean_model/'
         
         try:
             self.load_model_data()
@@ -160,7 +159,6 @@ class boolean_model(generic_mri_model):
                 return False
         return True
         
-    
     def match_cc_doc(self, doc : document, cc):
         for item in cc.args:
             if not self.match_atom_doc(doc, item):
@@ -173,7 +171,7 @@ class boolean_model(generic_mri_model):
             if self.match_cc_doc(doc, cc):
                 return True
         return False
-                
+             
     def exec_query(self, q : query) -> List[Tuple[document, float]]:
         recovery_docs : List[Tuple[document, float]]= []
         q_dnf = to_dnf(" ".join(q.boolean_text))
@@ -189,6 +187,132 @@ class boolean_model(generic_mri_model):
                 recovery_docs.append((doc, 1))
         
         return recovery_docs
+          
+class fuzzy_model(generic_mri_model):
+    def __init__(self, corpus) -> None:
+        super().__init__(corpus)
         
+        try:
+            self.load_model_data()
+        except FileNotFoundError:
+
+            self.docs_contain_word_dict : Dict[str, List[document]] = self.calc_docs_contain_all_words()
+            self.correlation_dict : Dict[str, Dict[str,float]]= self.calc_correlation_dict()
+            self.belongs_docs : Dict[document, Dict[str, float]] = self.calc_belongs_docs()
+            self.save_model_data()
+    
+    def load_model_data(self):
+        with open(self.path / f'belongs_docs.bak','rb') as f:
+            self.belongs_docs = pk.load(f)
+    
+    def save_model_data(self):
+        self.path.mkdir(parents=True, exist_ok= True)
         
+        with open(self.path / f'belongs_docs.bak','wb') as f:
+            pk.dump(self.belongs_docs, f)
+    
+    def docs_contain_word(self, word : str) -> List[document]:
+        return [doc for doc in self._corpus.documents_words_counter.keys() 
+                if word in self._corpus.documents_words_counter[doc]]
+    
+    def calc_docs_contain_all_words(self) -> Dict[str, List[document]]:
+        docs_contain_all_words : Dict[str, List[document]] = {}
         
+        for word in self._corpus.all_words_counter.keys():
+            docs_contain_all_words[word] = self.docs_contain_word(word)
+        return docs_contain_all_words
+            
+    def calc_correlation(self, word_i : str, word_j : str) -> float:
+        docs_i = self.docs_contain_word_dict[word_i]
+        docs_j = self.docs_contain_word_dict[word_j]
+        
+        n_i = len(docs_i)
+        n_j = len(docs_j)
+        n_ij = len(set(docs_i) & set(docs_j))
+                
+        return n_ij / (n_i + n_j - n_ij)
+    
+    def calc_correlation_dict(self) -> Dict[str, Dict[str, float]]:
+        correlation_dict : Dict[str, Dict[str, float]] = {}
+        
+        for word_i in self._corpus.all_words_counter.keys():
+            correlation_dict[word_i] = {}
+            for word_j in self._corpus.all_words_counter.keys():
+                if word_i != word_j:
+                    correlation_dict[word_i][word_j] = self.calc_correlation(word_i, word_j)
+        
+        return correlation_dict
+
+    def calc_belongs_doc_word(self, doc, word_i) -> float:
+        mult_corr = 1
+        for word_l in self._corpus.documents_words_counter[doc].keys():
+            if word_i != word_l:
+                mult_corr  *= (1 - self.correlation_dict[word_i][word_l])
+            
+        
+        return 1 - mult_corr    
+    
+    def calc_belongs_docs(self) -> Dict[document, Dict[str, float]]:
+        belongs_docs : Dict[document, Dict[str, float]] = {}
+        
+        for doc in self._corpus.documents_words_counter.keys():
+            belongs_docs[doc] = {}
+            for word in self._corpus.all_words_counter.keys():
+                belongs_docs[doc][word] = self.calc_belongs_doc_word(doc, word)
+                
+        return belongs_docs
+    
+    def to_complete_dnf(self, dnf):
+        dnf = to_dnf(dnf)
+        
+        for var in dnf.free_symbols:
+            new_dnf = ''
+            for cc in dnf.args:
+                if var not in cc.free_symbols:
+                    exp = sympify(f'{var} | ~{var}')
+                    new_cc = f'({str(cc)}) & ({str(exp)})'
+                    new_dnf += f'({new_cc}) | '
+                else:
+                    new_dnf += f'({str(cc)}) | '
+            new_dnf = new_dnf[:-3]
+            dnf = to_dnf(new_dnf)
+        
+        return dnf
+                    
+    def calc_belong_doc_cc(self, doc, cc):
+        belong_doc_cc = 1
+        for atom in cc.args:
+            if str(atom)[0] == '~':
+                atom = str(atom)[1:]
+                belong_doc_cc *= (1 - self.belongs_docs[doc][atom])
+            else:
+                atom = str(atom)
+                belong_doc_cc *= self.belongs_docs[doc][atom]
+        
+        return belong_doc_cc
+    
+    def exec_query(self, query) -> List[Tuple[document, float]]:
+        ranking : List[Tuple[document, float]] = []
+        q_dnf = to_dnf(" ".join(query.boolean_text))
+        
+        if not q_dnf.is_Atom:
+            q_dnf = self.to_complete_dnf(q_dnf)
+        
+        for doc in self._corpus.documents_words_counter.keys():
+            if not q_dnf.is_Atom:
+                belong_doc_query = 1
+                
+                for cc in q_dnf.args:
+                    belong_doc_cc = self.calc_belong_doc_cc(doc, cc)
+                    belong_doc_query *= (1 - belong_doc_cc)
+                
+                ranking.append((doc, 1 - belong_doc_query))    
+            else:
+                if not q_dnf.is_negative:
+                    ranking.append((doc, self.belongs_docs[doc][str(q_dnf)]))
+                else:
+                    ranking.append((doc, 1 - self.belongs_docs[doc][str(q_dnf)[1:]]))
+        
+        ranking.sort(reverse = True, key= lambda x: x[1])
+        
+        return ranking
