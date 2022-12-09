@@ -125,15 +125,15 @@ def get_cranfield_qrel(qrel_path):
         return result
     
 def get_cranfield_queries(queries_path):
-    PATTERN = r'\n\.W\n(.*)'
+    PATTERN = r'(\d+)\n\.W\n(.*)'
     pattern = re.compile(PATTERN,re.DOTALL)
     with open(queries_path, 'r') as f:
             result = []
             raw_queries = f.read().split('\n.I')
-            for i,raw_query in enumerate(raw_queries):
-                query_id = i+1
+            for raw_query in raw_queries:
                 aux = pattern.search(raw_query)
-                text = aux.group(1)
+                query_id = int(aux.group(1))
+                text = aux.group(2)
                 qry = query(query_id, text)
                 result.append(qry)
             return result

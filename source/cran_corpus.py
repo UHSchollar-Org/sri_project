@@ -6,7 +6,7 @@ from text_processing import *
 
 class cran_corpus(corpus):
     
-        PATTERN = r'\n\.T(.*)\n\.A(.*)\n\.B(.*)\n\.W(.*)'
+        PATTERN = r'(\d+)\n\.T(.*)\n\.A(.*)\n\.B(.*)\n\.W(.*)'
         pattern = re.compile(PATTERN,re.DOTALL) 
 
         def __init__(self, stemming, lemmatizing) -> None:
@@ -18,13 +18,17 @@ class cran_corpus(corpus):
             
             with open(data_path, 'r') as f:
                 texts = f.read().split('\n.I')
-                for i,article in enumerate(texts):
-                    doc_id = i+1
+                for article in texts:
                     aux = self.pattern.search(article)
-                    doc_tittle = aux.group(1)
-                    doc_author = aux.group(2)
-                    doc_bibliography = aux.group(3)
-                    doc_text = aux.group(4)
+                    doc_id = int(aux.group(1))
+                    doc_tittle = aux.group(2)
+                    if doc_tittle != '':
+                        doc_tittle = doc_tittle.split('\n')[1]
+                    doc_author = aux.group(3)
+                    if doc_author != '':
+                        doc_author = doc_author.split('\n')[1]
+                    doc_bibliography = aux.group(4)
+                    doc_text = aux.group(5)
                     
                     doc = document(doc_id,doc_tittle,doc_author,doc_text)
                     
