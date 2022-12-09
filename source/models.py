@@ -91,8 +91,11 @@ class vector_model(generic_mri_model):
         tfs_query = self.calc_query_tfs(q)
         
         for word in q.clean_text:
-            weights_query[word] = (a + (1 - a) * tfs_query[word]) * self.idfs[word]
-        
+            try:
+                weights_query[word] = (a + (1 - a) * tfs_query[word]) * self.idfs[word]
+            except KeyError:
+                weights_query[word] = 0
+                
         return weights_query
     
     """def docs_weights_to_vector(self, doc : document) -> List[float]:
