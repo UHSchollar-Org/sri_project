@@ -20,7 +20,20 @@ def remove_non_ascii(text):
 def to_lower(text : list):
     return [w.lower() for w in text]
     
-
+def remove_empty_parenthesis(list):
+    invalid_positions : List[int] = []
+    new_list = []
+    for i in range(len(list)):
+        if list[i] == '(' and list[i+1] == ')':
+            invalid_positions.append(i)
+            invalid_positions.append(i+1)
+    
+    for i in range(len(list)):
+        if i not in invalid_positions:
+            new_list.append(list[i])
+    return new_list
+    
+    
 def remove_puntuation(text : list, keep_parenthesis : bool = False):
     new_text = []
     for w in text:
@@ -29,6 +42,11 @@ def remove_puntuation(text : list, keep_parenthesis : bool = False):
             new_text.append(new_word)
         elif keep_parenthesis and (w == '(' or w == ')'):
             new_text.append(w)
+    
+    #remove empty parenthesis
+    if keep_parenthesis:
+        new_text = remove_empty_parenthesis(new_text)
+        
     return new_text
 
 def replace_numbers(text : list):
@@ -150,7 +168,7 @@ def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
         
         return new_exp
     else:
-        raise SyntaxError()
+        raise SyntaxError("Invalid format")
     
 def clean_text(text, steaming, lemmatizing, is_boolean_text : bool = False):
     text = normalize_text(text, is_boolean_text)

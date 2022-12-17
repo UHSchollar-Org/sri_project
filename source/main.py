@@ -40,7 +40,7 @@ match model:
 
 q1 : query = query(0,"what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
 q2 : query = query(1,"(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
-q3 : query = query(2,"how do interference-free longitudinal stability measurements (made using free-flight models) compare with similar measurements made in a low-blockage wind tunnel")
+q3 : query = query(2,"why do users of orthodox pitot-static tubes often find that the calibrations appear to be,. - (a) significantly different from those formerly specified,  (b) wildly variable at low reynolds numbers")
 
 evaluate(corp, model)
 """r = model.exec_query(q1)
