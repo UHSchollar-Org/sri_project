@@ -5,7 +5,6 @@ from models import vector_model, boolean_model, fuzzy_model
 from document import query
 import configparser
 from eval import evaluate
-
 # region Reading all settings
 config = configparser.ConfigParser()
 config.read('source/config.ini')
@@ -43,7 +42,7 @@ q1 : query = query(0,"what similarity laws must be obeyed when constructing aero
 q2 : query = query(1,"(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
 q3 : query = query(2,"experimental")
 
-w, x, y, z = evaluate(corp, model)
+evaluate(corp, model)
 """r = model.exec_query(q1)
 q1 : query = query("what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
 q2 : query = query("(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
@@ -54,11 +53,10 @@ r = model.exec_query(q4)
     
 for tuple in r:
     print(tuple[0])"""
-print(w)
-print('***************')
+"""print('***************')
 print(x)
 print('***************')
 print(y)
 print('***************')
 print(z)
-print('***************')
+print('***************')"""
