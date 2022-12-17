@@ -105,7 +105,7 @@ def is_balanced(text) -> bool:
 
 def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
     text = clean_text(text, steaming, lemmatizing, True)
-    exp = []
+    exp : List[str] = []
     if is_balanced(text):
         i = 0
         while i < len(text):
@@ -126,11 +126,19 @@ def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
                     exp.append(')')
                 case _:
                     exp.append(text[i])
-                    if i+1 < len(text) and text[i+1] not in ['and', 'or', 'not', '(', ')']:
+                    if i+1 < len(text) and text[i+1] not in ['and', 'or', ')']:
                         exp.append('&')
             i+=1
-    
-        return exp
+
+        new_exp = []
+        for atom in exp:
+            if atom not in ['&', '|', '(', ')']:
+                new_exp.append(f'{atom}_')
+            else:
+                new_exp.append(atom)
+                
+        
+        return new_exp
     else:
         raise SyntaxError()
     

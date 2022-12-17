@@ -153,6 +153,7 @@ class boolean_model(generic_mri_model):
     
     def match_atom_doc(self, doc: document, atom):
         word = str(atom)
+        word = word[:-1]
         if word[0] == '~':
             word = word[1:]
             if word in self._corpus.documents_words_counter[doc].keys():
@@ -285,11 +286,11 @@ class fuzzy_model(generic_mri_model):
     def calc_belong_doc_cc(self, doc, cc):
         belong_doc_cc = 1
         for atom in cc.args:
-            if str(atom)[0] == '~':
-                atom = str(atom)[1:]
+            atom = str(atom)[:-1]
+            if atom[0] == '~':
+                atom = atom[1:]
                 belong_doc_cc *= (1 - self.belongs_docs[doc][atom])
             else:
-                atom = str(atom)
                 belong_doc_cc *= self.belongs_docs[doc][atom]
         
         return belong_doc_cc
@@ -312,9 +313,9 @@ class fuzzy_model(generic_mri_model):
                 ranking.append((doc, 1 - belong_doc_query))    
             else:
                 if not q_dnf.is_negative:
-                    ranking.append((doc, self.belongs_docs[doc][str(q_dnf)]))
+                    ranking.append((doc, self.belongs_docs[doc][str(q_dnf)[:-1]]))
                 else:
-                    ranking.append((doc, 1 - self.belongs_docs[doc][str(q_dnf)[1:]]))
+                    ranking.append((doc, 1 - self.belongs_docs[doc][str(q_dnf)[1:-1]]))
         
         ranking.sort(reverse = True, key= lambda x: x[1])
         
