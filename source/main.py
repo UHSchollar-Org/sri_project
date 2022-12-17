@@ -40,7 +40,7 @@ match model:
 
 q1 : query = query(0,"what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft")
 q2 : query = query(1,"(aeroelastic and models) and (heated or high and (speed or aircraft)) and not speed")
-q3 : query = query(2,"did anyone else discover that the turbulent skin friction is not over sensitive to the nature of the variation of the viscosity with temperature")
+q3 : query = query(2,"how do interference-free longitudinal stability measurements (made using free-flight models) compare with similar measurements made in a low-blockage wind tunnel")
 
 evaluate(corp, model)
 """r = model.exec_query(q1)

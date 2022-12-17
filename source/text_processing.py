@@ -125,6 +125,8 @@ def get_boolean_text(text, steaming, lemmatizing) -> List[str]:
                         exp.append('~'+ text[i+1])
                         i+=1
                 case '(':
+                    if i != 0 and text[i-1] not in ['and', 'or', 'not', '(']:
+                        exp.append('&')
                     exp.append('(')
                 case ')':
                     exp.append(')')
