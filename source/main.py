@@ -1,6 +1,8 @@
-import txt_corpus as txt
-import cran_corpus as cran
-import twenty_news_corpus as news
+from txt_corpus import txt_corpus
+from cran_corpus import cran_corpus
+from cisi_corpus import cisi_corpus
+from med_corpus import med_corpus
+from twenty_news_corpus import twenty_news_corpus
 from models import vector_model, boolean_model, fuzzy_model
 from document import query
 import configparser
@@ -12,16 +14,20 @@ config.read('source/config.ini')
 steamming = config.getboolean('DEFAULT','STEAMMING')
 lemmatizing = config.getboolean('DEFAULT','LEMMATIZING')
 corp = config['DEFAULT']['CORPUS']
-if corp not in ['txt', '20news','cranfield']:
-    raise Exception('Corpus not allowed. Only TXT, 20News and Cranfield corpora are allowed')
+if corp not in ['txt', 'cisi', 'medline', '20news','cranfield']:
+    raise Exception('Corpus not allowed. Only TXT, CISI, 20News and Cranfield corpora are allowed')
 
 match corp:
     case 'txt':
-        corp = txt.txt_corpus(steamming, lemmatizing)
+        corp = txt_corpus(steamming, lemmatizing)
     case 'cranfield':
-        corp = cran.cran_corpus(steamming,lemmatizing)
+        corp = cran_corpus(steamming, lemmatizing)
     case '20news':
-        corp = news.twenty_news_corpus(steamming,lemmatizing)
+        corp = twenty_news_corpus(steamming, lemmatizing)
+    case 'cisi':
+        corp = cisi_corpus(steamming, lemmatizing)
+    case 'medline':
+        corp = med_corpus(steamming, lemmatizing)
 
 model = config['DEFAULT']['MODEL']
 if model not in ['boolean', 'vector', 'fuzzy']:

@@ -39,12 +39,12 @@ class query:
   
 class corpus(ABC):
     
-    def __init__(self, name, stemming, lemmatizing) -> None:
+    def __init__(self, name, stemming : bool, lemmatizing : bool) -> None:
         self.path = Path.cwd()
         self.name = name
         self.stemming = stemming
         self.lemmatizing = lemmatizing
-        self.docs_count = 0
+        
         
         try:
             self.load_indexed_corpus()
@@ -53,6 +53,8 @@ class corpus(ABC):
             self.all_words_counter : Dict[str, int] = {}
             self.proccess_corpus()
             self.save_indexed_corpus()
+            
+        self.docs_count = len(self.documents_words_counter.keys())
     
     def load_indexed_corpus(self):
         ind_corpus_path = self.path / f'corpus/indexed_corpus/{self.name}_index/'

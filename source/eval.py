@@ -2,6 +2,7 @@ from document import corpus, document, query
 from models import generic_mri_model
 from typing import Dict, Tuple
 from statistics import mean
+import ir_datasets
 import re
 import matplotlib.pyplot as plt
 import numpy as np
@@ -78,7 +79,7 @@ def evaluate(_corpus : corpus, model : generic_mri_model):
             
     names = ['Precisicion', 'Recall', 'F1', 'Fallout']
     tops = [n for n in range(2,51,2)]
-    draw_results((precision_list, recall_list, f1_list, fallout_list), names, tops)
+    return draw_results((precision_list, recall_list, f1_list, fallout_list), names, tops)
 
 def draw_results(results : tuple, names, tops):
     """Graph the results obtained in the evaluation of the models
@@ -101,7 +102,7 @@ def draw_results(results : tuple, names, tops):
     for ax in axs.flatten():
         ax.legend()
         
-    plt.show()
+    return fig
     
 def draw_measure_result(measure : list[list], tops, title, color, show: bool = False):
     """Graph the results of the specific measure
@@ -220,20 +221,52 @@ def get_queries(_corpus:corpus):
     """
     match _corpus.name:
         case 'cranfield':
-            queries_path = _corpus.path/'corpus/cran_corpus/cran.qry'
-            return get_cranfield_queries(queries_path)
+            """queries_path = _corpus.path/'corpus/cran_corpus/cran.qry'
+            return read_queries_file(queries_path)"""
+            dataset = ir_datasets.load("cranfield")
+            return get_dataset_queries(dataset)
+        case 'cisi':
+            """queries_path = _corpus.path/'corpus/cisi/CISI.QRY'
+            return read_queries_file(queries_path)"""
+            dataset = ir_datasets.load("medline/2017/trec-pm-2018")
+            return get_dataset_queries(dataset)
+        case 'medline':
+            """queries_path = _corpus.path/'corpus/med/MED.QRY'
+            return read_queries_file(queries_path)"""
+            dataset = ir_datasets.load("medline/2017/trec-pm-2018")
+            return get_dataset_queries(dataset)
         case other:
             raise Exception('Sorry but we can\'t evaluate this corpus')
 
 def get_query_doc_relevance(_corpus:corpus):
     match _corpus.name:
         case 'cranfield':
-            qrel_path = _corpus.path/'corpus/cran_corpus/cranqrel'
-            return get_cranfield_qrel(qrel_path)
+            """qrel_path = _corpus.path/'corpus/cran_corpus/cranqrel'
+            return get_cranfield_qrel(qrel_path)"""
+            dataset = ir_datasets.load("cranfield")
+            return get_dataset_qrels(dataset)
+        case 'cisi':
+            qrel_path = _corpus.path/'corpus/cisi/CISI.REL'
+            return get_cisi_qrel(qrel_path)
+        case 'medline':
+            qrel_path = _corpus.path/'corpus/med/MED.REL.OLD'
+            return get_cisi_qrel(qrel_path)
+            #MED.REL.OLD has the same format as CISI.REL, so get_cisi_qrel() is reused        
         case other:
             raise Exception('Sorry but we can\'t evaluate this corpus')
 
-def get_cranfield_qrel(qrel_path):
+def get_cranfield_qrel(qrel_path) -> dict:
+    """Given an address, it reads the relevance cranfield file and returns the dictionary 
+    that relates the query-doc-relevance.
+
+    Args:
+        qrel_path (path): Path where the cranfield file containing the relevance of the 
+        documents for the query is located
+
+    Returns:
+        dict: Dictionary that has as key the tuple query-document and as value 
+        the relevance of that document for that query
+    """
     result = {}
     with open(qrel_path, 'r') as f:
         lines = f.read().split('\n')
@@ -242,7 +275,54 @@ def get_cranfield_qrel(qrel_path):
             result[int(aux[0]),int(aux[1])] = int(aux[2])
         return result
     
-def get_cranfield_queries(queries_path):
+def get_cisi_qrel(qrel_path) -> dict:
+    """Given an address, it reads the relevance cisi file and returns the dictionary 
+    that relates the query-doc-relevance.
+
+    Args:
+        qrel_path (path): Path where the cisi file containing the relevance of the 
+        documents for the query is located
+
+    Returns:
+        dict: Dictionary that has as key the tuple query-document and as value 
+        the relevance of that document for that query
+    """
+    result = {}
+    with open(qrel_path, 'r') as f:
+        lines = f.read().split('\n')
+        for line in lines:
+            aux = line.split()
+            result[int(aux[0]),int(aux[1])] = 4
+            #we interpret the relevance as binary, if the query-document tuple is found,
+            #that document is considered relevant for the query, therefore it is assigned 4
+        return result
+
+def get_dataset_queries(dataset):
+    queries = []
+    
+    for dataset_query in dataset.queries_iter():
+        new_query = query(int(dataset_query[0]),dataset_query[1])
+        queries.append(new_query)
+        
+    return queries
+
+def get_dataset_qrels(dataset):
+    qrels = {}
+    
+    for dataset_qrel in dataset.qrels_iter():
+        qrels[int(dataset_qrel[0]),int(dataset_qrel[1])] = int(dataset_qrel[2])
+    
+    return qrels
+
+def read_queries_file(queries_path) -> list:
+    """Given an address, it reads the queries file and returns the list of queries read
+
+    Args:
+        queries_path (path): Path where the file containing the queries is located
+
+    Returns:
+        list: list of queries read
+    """
     PATTERN = r'(\d+)\n\.W\n(.*)'
     pattern = re.compile(PATTERN,re.DOTALL)
     with open(queries_path, 'r') as f:
