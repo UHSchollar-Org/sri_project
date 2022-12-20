@@ -57,6 +57,7 @@ def replace_numbers(text : list):
         if w.isdigit():
             w = p.number_to_words(w)
             w = w.replace('and', '')
+            w = w.replace('-', ' ')
             for word in w.split():
                 new_text.append(word)
         else:
