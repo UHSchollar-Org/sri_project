@@ -30,8 +30,6 @@ class twenty_news_corpus(corpus):
                         doc_tittle = text1.split(':',1)[1].split('\n')[0]
                         doc_author = text2.split(':',1)[1].split('\n')[0]
                         doc = document(file.name,doc_tittle,doc_author,f.read())
-                        print(str(doc.id) +' '+str(doc.title)+' '+str(doc.author))
-                        
                 clean_doc = clean_text(doc.text, self.stemming, self.lemmatizing)
                 
                 for word in set(clean_doc):

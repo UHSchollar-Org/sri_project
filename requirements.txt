@@ -1,0 +1,8 @@
+inflect==6.0.2
+ir_datasets==0.5.4
+matplotlib==3.6.2
+nltk==3.7
+numpy==1.23.1
+pandas==1.5.2
+streamlit==1.16.0
+sympy==1.11

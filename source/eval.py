@@ -39,14 +39,8 @@ def evaluate(_corpus : corpus, model : generic_mri_model):
     fallout_list = []
     
     queries = get_queries(_corpus)
-    print(len(queries))
-    print("*********************************************")
     query_doc_relevance = get_query_doc_relevance(_corpus)
     for query in queries:
-        """if query.id in [37]:
-            continue"""
-        print(query.id)
-        print(query.boolean_text)
         r = model.exec_query(query)
         total_rel_doc, total_irrel_doc = get_total_relevant_documents(query,query_doc_relevance, _corpus.docs_count)
         #region Initializing Results Lists
@@ -328,6 +322,8 @@ def read_queries_file(queries_path) -> list:
     pattern1 = re.compile(PATTERN1,re.DOTALL)
     PATTERN2 = r'(\d+)\n\.T\n(.*)\n\.A\n(.*)\n\.W\n(.*)'
     pattern2 = re.compile(PATTERN2,re.DOTALL)
+    PATTERN3 = r'(\d+)\n\.T\n(.*)\n\.A\n(.*)\n\.W\n(.*)\n\.B\n(.*)'
+    pattern3 = re.compile(PATTERN3,re.DOTALL)
     
     with open(queries_path, 'r') as f:
             result = []
@@ -340,9 +336,16 @@ def read_queries_file(queries_path) -> list:
                     qry = query(query_id, text)
                     result.append(qry)
                 else:
-                    aux = pattern2.search(raw_query)
-                    query_id = int(aux.group(1))
-                    text = aux.group(4)
-                    qry = query(query_id, text)
-                    result.append(qry)
+                    aux = pattern3.search(raw_query)
+                    try:
+                        query_id = int(aux.group(1))
+                        text = aux.group(4)
+                        qry = query(query_id, text)
+                        result.append(qry)
+                    except:
+                        aux = pattern2.search(raw_queries)
+                        query_id = int(aux.group(1))
+                        text = aux.group(4)
+                        qry = query(query_id, text)
+                        result.append(qry)
             return result
