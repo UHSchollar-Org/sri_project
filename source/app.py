@@ -22,6 +22,8 @@ state_vars = [
     "str_query"
 ]
 
+st.set_page_config(layout="wide", page_title="Karelio's Information Retrieval System")   
+
 #region Reading all settings
 config = configparser.ConfigParser()
 config.read('source/config.ini')
@@ -51,6 +53,8 @@ def reset():
     reset_search()
 #endregion
     
+st.title("Information Retrieval System")
+
 def show_result(result: document):
     doc_id = result.id
     expander_header = f"{doc_id} -- ".format(doc_id)
@@ -68,20 +72,18 @@ def show_result(result: document):
         
         st.markdown(result.text.capitalize())
         
-st.title("Information Retrieval Multi-Models")
 reset()
 
 
 
 if not datasets:
     st.write("No databases found")
-#datasets.insert(0, "-")
 
-col1, col2 = st.columns([2, 2])
+#region Sidebar
+st.sidebar.write("# Config :gear:")
 
-with col1:
-    dataset = st.selectbox("Select a database", datasets)
-    if dataset != "-":
+dataset = st.sidebar.selectbox("Select a database", datasets)
+if dataset != "-":
         if st.session_state.corpus is None or st.session_state.str_corpus != dataset:
             reset()
             
@@ -101,25 +103,25 @@ with col1:
                 
             st.session_state.corpus = corpus
             st.session_state.str_corpus = dataset
+    
 
-with col2:
-    str_model = st.selectbox(
-        "Choose a retrieval model", ["-", "Vectorial", "Boolean", "Fuzzy"])
-    if not str_model:
-        st.error("Please select one model.")
-    if dataset != "-":
-        model = None
+
+str_model = st.sidebar.selectbox("Choose a retrieval model ", ["-", "Vectorial", "Boolean", "Fuzzy"])
+if not str_model:
+    st.error("Please select one model.")
+if dataset != "-":
+    model = None
         
-        match str_model:
-            case 'Boolean':
-                model = boolean_model(st.session_state.corpus)
-            case 'Vectorial':
-                model = vector_model(st.session_state.corpus)
-            case 'Fuzzy':
-                model = fuzzy_model(st.session_state.corpus)
-        st.session_state.model = model
-        st.session_state.str_model = str_model
-        
+    match str_model:
+        case 'Boolean':
+            model = boolean_model(st.session_state.corpus)
+        case 'Vectorial':
+            model = vector_model(st.session_state.corpus)
+        case 'Fuzzy':
+            model = fuzzy_model(st.session_state.corpus)
+    st.session_state.model = model
+    st.session_state.str_model = str_model
+       
 def make_visual_evaluation():
     if st.session_state.corpus is None:
         st.error('Please select a dataset first')
@@ -128,15 +130,22 @@ def make_visual_evaluation():
     else:
         st.pyplot(evaluate(st.session_state.corpus, st.session_state.model))
 
-if st.button("Show evaluation measures statistics") and st.session_state.corpus.name != '20NewsGroup':
-    make_visual_evaluation()
+
+#endregion
    
-str_query = st.text_input("Enter a query", placeholder="Write your query here")
-st.session_state.str_query = str_query
-if  st.session_state.model != None and str_query != "":
-    _query = query(0,str_query)
-    result = st.session_state.model.exec_query(_query)
-    st.write(f"Found {len(result)} results")
+col1, col2 = st.columns([2,2])
+with col1:
+    st.write("###  🔍 Enter a query")
+    str_query = st.text_input("", placeholder="Write your query here")
+    st.session_state.str_query = str_query
+    if  st.session_state.model != None and str_query != "":
+        _query = query(0,str_query)
+        result = st.session_state.model.exec_query(_query)
+        st.write(f"Found {len(result)} results")
     
-    for r in result:
-        show_result(r[0])
+        for r in result:
+            show_result(r[0])
+with col2:
+    if st.session_state.str_corpus == 'Cranfield' or st.session_state.str_model == 'Vectorial':
+        if st.button("Show evaluation measures statistics 📈"):
+            make_visual_evaluation()

@@ -13,7 +13,7 @@ import matplotlib as plt
 
 steamming = True
 lemmatizing = False
-corp = 'cisi'
+corp = 'cranfield'
 if corp not in ['txt', 'cisi', 'medline', '20news','cranfield']:
     raise Exception('Corpus not allowed. Only TXT, CISI, 20News and Cranfield corpora are allowed')
 
@@ -29,7 +29,7 @@ match corp:
     case 'medline':
         corp = med_corpus(steamming, lemmatizing)
 
-model = 'boolean'
+model = 'vector'
 if model not in ['boolean', 'vector', 'fuzzy']:
     raise Exception('Model not allowed. Only Boolean and Vector models are allowed')
 
