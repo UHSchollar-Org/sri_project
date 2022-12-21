@@ -92,7 +92,7 @@ with col1:
                     corpus = txt_corpus(steamming, lemmatizing)
                 case 'Cranfield':
                     corpus = cran_corpus(steamming, lemmatizing)
-                case '20news':
+                case '20NewsGroup':
                     corpus = twenty_news_corpus(steamming, lemmatizing)
                 case 'CISI':
                     corpus = cisi_corpus(steamming, lemmatizing)
@@ -128,7 +128,7 @@ def make_visual_evaluation():
     else:
         st.pyplot(evaluate(st.session_state.corpus, st.session_state.model))
 
-if st.button("Show evaluation measures statistics"):
+if st.button("Show evaluation measures statistics") and st.session_state.corpus.name != '20NewsGroup':
     make_visual_evaluation()
    
 str_query = st.text_input("Enter a query", placeholder="Write your query here")

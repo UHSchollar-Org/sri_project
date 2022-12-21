@@ -234,10 +234,8 @@ def get_queries(_corpus:corpus):
             queries_path = _corpus.path/'corpus/cisi/CISI.QRY'
             return read_queries_file(queries_path)
         case 'medline':
-            """queries_path = _corpus.path/'corpus/med/MED.QRY'
-            return read_queries_file(queries_path)"""
-            dataset = ir_datasets.load("medline/2017/trec-pm-2018")
-            return get_dataset_queries(dataset)
+            queries_path = _corpus.path/'corpus/med/MED.QRY'
+            return read_queries_file(queries_path)
         case other:
             raise Exception('Sorry but we can\'t evaluate this corpus')
 
@@ -250,10 +248,10 @@ def get_query_doc_relevance(_corpus:corpus):
             return get_dataset_qrels(dataset)
         case 'cisi':
             qrel_path = _corpus.path/'corpus/cisi/CISI.REL'
-            return get_cisi_qrel(qrel_path)
+            return get_cisi_qrels(qrel_path)
         case 'medline':
             qrel_path = _corpus.path/'corpus/med/MED.REL.OLD'
-            return get_dataset_qrels(qrel_path)
+            return get_cisi_qrels(qrel_path)
             #MED.REL.OLD has the same format as CISI.REL, so get_cisi_qrel() is reused        
         case other:
             raise Exception('Sorry but we can\'t evaluate this corpus')
@@ -278,7 +276,7 @@ def get_cranfield_qrel(qrel_path) -> dict:
             result[int(aux[0]),int(aux[1])] = int(aux[2])
         return result
     
-def get_cisi_qrel(qrel_path) -> dict:
+def get_cisi_qrels(qrel_path) -> dict:
     """Given an address, it reads the relevance cisi file and returns the dictionary 
     that relates the query-doc-relevance.
 
