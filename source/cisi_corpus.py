@@ -45,7 +45,6 @@ class cisi_corpus(corpus):
                     cross_references = aux.group(5)
                     
                     doc = document(doc_id,doc_tittle,doc_author,doc_text)
-                    self.docs_count+=1
                     
                     clean_doc = clean_text(doc.text, self.stemming, self.lemmatizing)
                 

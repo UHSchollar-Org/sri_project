@@ -18877,3 +18877,4 @@ models_info/vector_model/medline/idfs.bak
 models_info/vector_model/medline/weights.bak
 source/__pycache__/cisi_corpus.cpython-310.pyc
 source/__pycache__/med_corpus.cpython-310.pyc
+models_info/fuzzy_model/cisi/belongs_docs.bak

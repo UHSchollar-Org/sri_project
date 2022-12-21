@@ -116,7 +116,7 @@ class vector_model(generic_mri_model):
         for doc in self._corpus.documents_words_counter.keys():
             doc_x_q = 0
             doc_norm = math.sqrt(sum([i**2 for i in self.weights_in_docs[doc].values()]))
-            query_norm = math.sqrt(sum(weight_q.values()))
+            query_norm = math.sqrt(sum([i**2 for i in weight_q.values()]))
             for word in set(reduced_q):
                 try:
                     doc_x_q += self.weights_in_docs[doc][word] * weight_q[word]
@@ -164,6 +164,8 @@ class boolean_model(generic_mri_model):
         return True
         
     def match_cc_doc(self, doc : document, cc):
+        if cc.is_Atom:
+            return self.match_atom_doc(doc, cc)
         for item in cc.args:
             if not self.match_atom_doc(doc, item):
                 return False
@@ -289,9 +291,9 @@ class fuzzy_model(generic_mri_model):
             atom = str(atom)[:-1]
             if atom[0] == '~':
                 atom = atom[1:]
-                belong_doc_cc *= (1 - self.belongs_docs[doc][atom])
+                belong_doc_cc *= (1 - self.belongs_docs[doc].get(atom, 1))
             else:
-                belong_doc_cc *= self.belongs_docs[doc][atom]
+                belong_doc_cc *= self.belongs_docs[doc].get(atom, 1)
         
         return belong_doc_cc
     
@@ -299,23 +301,30 @@ class fuzzy_model(generic_mri_model):
         ranking : List[Tuple[document, float]] = []
         q_dnf = to_dnf(" ".join(query.boolean_text))
         
-        if not q_dnf.is_Atom:
+        if not (q_dnf.is_Atom or q_dnf.identity):
             q_dnf = self.to_complete_dnf(q_dnf)
         
         for doc in self._corpus.documents_words_counter.keys():
+            result=0
             if not q_dnf.is_Atom:
                 belong_doc_query = 1
                 
                 for cc in q_dnf.args:
                     belong_doc_cc = self.calc_belong_doc_cc(doc, cc)
                     belong_doc_query *= (1 - belong_doc_cc)
-                
-                ranking.append((doc, 1 - belong_doc_query))    
+                    
+                #ranking.append((doc, 1 - belong_doc_query))
+                result = 1 - belong_doc_query    
             else:
                 if not q_dnf.is_negative:
-                    ranking.append((doc, self.belongs_docs[doc][str(q_dnf)[:-1]]))
+                    #ranking.append((doc, self.belongs_docs[doc][str(q_dnf)[:-1]]))
+                    result = self.belongs_docs[doc].get(str(q_dnf)[:-1], 0)
                 else:
-                    ranking.append((doc, 1 - self.belongs_docs[doc][str(q_dnf)[1:-1]]))
+                    #ranking.append((doc, 1 - self.belongs_docs[doc][str(q_dnf)[1:-1]]))
+                    result = 1 - self.belongs_docs[doc].get(str(q_dnf)[1:-1], 1)
+            
+            if result > 0.1:
+                ranking.append((doc, result))
         
         ranking.sort(reverse = True, key= lambda x: x[1])
         

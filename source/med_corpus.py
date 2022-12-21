@@ -1,5 +1,6 @@
 import pickle as plk
 import re
+import ir_datasets
 from collections import Counter
 from document import corpus, document
 from text_processing import *
@@ -24,23 +25,18 @@ class med_corpus(corpus):
     def proccess_corpus(self):
         """Processing and analysis of the corpus
         """
-        data_path = self.path/'corpus/med/MED.ALL'
-        
-        with open(data_path, 'r') as f:
-                texts = f.read().split('\n.I')
-                for article in texts:
-                    aux = self.pattern.search(article)
-                    doc_id = int(aux.group(1))
-                    doc_tittle = 'unknown'
-                    doc_author = 'unknown'
-                    doc_text = aux.group(2)
-                    
-                    doc = document(doc_id,doc_tittle,doc_author,doc_text)
-                    self.docs_count+=1
-                    
-                    clean_doc = clean_text(doc.text, self.stemming, self.lemmatizing)
+        dataset = ir_datasets.load("medline/2017/trec-pm-2018")
+        for doc in dataset.docs_iter():
+            doc_id = doc[0]
+            doc_tittle = doc[1]
+            doc_text = doc[2]
+            doc_author = 'unknown'
+                            
+            doc = document(doc_id,doc_tittle,doc_author,doc_text)
+                                        
+            clean_doc = clean_text(doc.text, self.stemming, self.lemmatizing)
+            
+            for word in set(clean_doc):
+                self.all_words_counter[word] = self.all_words_counter.get(word, 0) + 1
                 
-                    for word in set(clean_doc):
-                        self.all_words_counter[word] = self.all_words_counter.get(word, 0) + 1
-                
-                    self.documents_words_counter[doc] = Counter(clean_doc)
+            self.documents_words_counter[doc] = Counter(clean_doc)

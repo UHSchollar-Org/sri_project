@@ -39,8 +39,14 @@ def evaluate(_corpus : corpus, model : generic_mri_model):
     fallout_list = []
     
     queries = get_queries(_corpus)
+    print(len(queries))
+    print("*********************************************")
     query_doc_relevance = get_query_doc_relevance(_corpus)
     for query in queries:
+        """if query.id in [37]:
+            continue"""
+        print(query.id)
+        print(query.boolean_text)
         r = model.exec_query(query)
         total_rel_doc, total_irrel_doc = get_total_relevant_documents(query,query_doc_relevance, _corpus.docs_count)
         #region Initializing Results Lists
@@ -79,9 +85,9 @@ def evaluate(_corpus : corpus, model : generic_mri_model):
             
     names = ['Precisicion', 'Recall', 'F1', 'Fallout']
     tops = [n for n in range(2,51,2)]
-    return draw_results((precision_list, recall_list, f1_list, fallout_list), names, tops)
+    return draw_results((precision_list, recall_list, f1_list, fallout_list), model.__class__.__name__, _corpus.name, names, tops)
 
-def draw_results(results : tuple, names, tops):
+def draw_results(results : tuple, model_name, corpus_name, names, tops):
     """Graph the results obtained in the evaluation of the models
     Args:
         measure (list[list]): matrix of measure values
@@ -91,7 +97,7 @@ def draw_results(results : tuple, names, tops):
         ax.grid(True)
         ax.set_xlabel("Top")
         ax.set_ylabel("Mean")
-    fig.suptitle("Models comparison", fontsize=16)
+    fig.suptitle(f'{corpus_name} - {model_name}', fontsize=16)
     for i, measure in enumerate(results):
         name = names[i]
         color = PLT_COLORS[i % len(PLT_COLORS)]
@@ -101,7 +107,8 @@ def draw_results(results : tuple, names, tops):
         plt.tight_layout()
     for ax in axs.flatten():
         ax.legend()
-        
+    
+    plt.show()  
     return fig
     
 def draw_measure_result(measure : list[list], tops, title, color, show: bool = False):
@@ -221,15 +228,11 @@ def get_queries(_corpus:corpus):
     """
     match _corpus.name:
         case 'cranfield':
-            """queries_path = _corpus.path/'corpus/cran_corpus/cran.qry'
-            return read_queries_file(queries_path)"""
             dataset = ir_datasets.load("cranfield")
             return get_dataset_queries(dataset)
         case 'cisi':
-            """queries_path = _corpus.path/'corpus/cisi/CISI.QRY'
-            return read_queries_file(queries_path)"""
-            dataset = ir_datasets.load("medline/2017/trec-pm-2018")
-            return get_dataset_queries(dataset)
+            queries_path = _corpus.path/'corpus/cisi/CISI.QRY'
+            return read_queries_file(queries_path)
         case 'medline':
             """queries_path = _corpus.path/'corpus/med/MED.QRY'
             return read_queries_file(queries_path)"""
@@ -250,7 +253,7 @@ def get_query_doc_relevance(_corpus:corpus):
             return get_cisi_qrel(qrel_path)
         case 'medline':
             qrel_path = _corpus.path/'corpus/med/MED.REL.OLD'
-            return get_cisi_qrel(qrel_path)
+            return get_dataset_qrels(qrel_path)
             #MED.REL.OLD has the same format as CISI.REL, so get_cisi_qrel() is reused        
         case other:
             raise Exception('Sorry but we can\'t evaluate this corpus')
@@ -323,15 +326,25 @@ def read_queries_file(queries_path) -> list:
     Returns:
         list: list of queries read
     """
-    PATTERN = r'(\d+)\n\.W\n(.*)'
-    pattern = re.compile(PATTERN,re.DOTALL)
+    PATTERN1 = r'(\d+)\n\.W\n(.*)'
+    pattern1 = re.compile(PATTERN1,re.DOTALL)
+    PATTERN2 = r'(\d+)\n\.T\n(.*)\n\.A\n(.*)\n\.W\n(.*)'
+    pattern2 = re.compile(PATTERN2,re.DOTALL)
+    
     with open(queries_path, 'r') as f:
             result = []
             raw_queries = f.read().split('\n.I')
             for raw_query in raw_queries:
-                aux = pattern.search(raw_query)
-                query_id = int(aux.group(1))
-                text = aux.group(2)
-                qry = query(query_id, text)
-                result.append(qry)
+                aux = pattern1.search(raw_query)
+                if aux is not None:
+                    query_id = int(aux.group(1))
+                    text = aux.group(2)
+                    qry = query(query_id, text)
+                    result.append(qry)
+                else:
+                    aux = pattern2.search(raw_query)
+                    query_id = int(aux.group(1))
+                    text = aux.group(4)
+                    qry = query(query_id, text)
+                    result.append(qry)
             return result

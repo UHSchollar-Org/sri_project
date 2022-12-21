@@ -22,6 +22,15 @@ state_vars = [
     "str_query"
 ]
 
+#region Reading all settings
+config = configparser.ConfigParser()
+config.read('source/config.ini')
+
+steamming = config.getboolean('DEFAULT','STEAMMING')
+lemmatizing = config.getboolean('DEFAULT','LEMMATIZING')
+datasets = eval(config['DEFAULT']['CORPUS'])
+#endregion
+
 #region Initializing values in Session State
 for var in state_vars:
     if var not in st.session_state:
@@ -62,19 +71,13 @@ def show_result(result: document):
 st.title("Information Retrieval Multi-Models")
 reset()
 
-datasets = ["Cranfield", "CISI", "Medline"]
+
 
 if not datasets:
     st.write("No databases found")
-datasets.insert(0, "-")
+#datasets.insert(0, "-")
 
 col1, col2 = st.columns([2, 2])
-
-config = configparser.ConfigParser()
-config.read('source/config.ini')
-
-steamming = True#config.getboolean('DEFAULT','STEAMMING')
-lemmatizing = False#config.getboolean('DEFAULT','LEMMATIZING')
 
 with col1:
     dataset = st.selectbox("Select a database", datasets)
@@ -111,11 +114,9 @@ with col2:
             case 'Boolean':
                 model = boolean_model(st.session_state.corpus)
             case 'Vectorial':
-                print(st.session_state.corpus)
                 model = vector_model(st.session_state.corpus)
             case 'Fuzzy':
                 model = fuzzy_model(st.session_state.corpus)
-        
         st.session_state.model = model
         st.session_state.str_model = str_model
         
@@ -139,6 +140,3 @@ if  st.session_state.model != None and str_query != "":
     
     for r in result:
         show_result(r[0])
-        
-
-
