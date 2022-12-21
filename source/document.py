@@ -5,6 +5,7 @@ import pickle as pk
 import nltk as nl
 from text_processing import clean_text, get_boolean_text
 from collections import Counter
+import configparser
 
 class document:
     
@@ -25,10 +26,16 @@ class document:
 
 class query:
     def __init__(self, id, text) -> None:
+        #region Reading settings
+        config = configparser.ConfigParser()
+        config.read('source/config.ini')
+        steamming = config.getboolean('DEFAULT','STEAMMING')
+        lemmatizing = config.getboolean('DEFAULT','LEMMATIZING')
+        #endregion
         self.id = id
         self.text = text
-        self.boolean_text = get_boolean_text(text, True, False)
-        self.clean_text = clean_text(text, True, False)  ##Cambiar aqui los booleanos por parametros
+        self.boolean_text = get_boolean_text(text, steamming, lemmatizing)
+        self.clean_text = clean_text(text, steamming, lemmatizing)
         self.counter = Counter(self.clean_text)
         
     def __iter__(self):
